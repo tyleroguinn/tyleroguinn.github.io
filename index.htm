@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Death Clock</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style>
+			@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+		</style>
+		<script>
+			form {
+				display: block;
+			}
+			p {
+				'Roboto', sans-serif;
+				text-align: center;
+				font-size: 80px;
+				display: none;
+			}
+		</script>
+	</head>
+	<body>
+		<form id="deathForm">
+			<select name="months">
+				<option value="January">January</option>
+				<option value="February">February</option>
+				<option value="March">March</option>
+				<option value="April">April</option>
+				<option value="May">May</option>
+				<option value="June">June</option>
+				<option value="July">July</option>
+				<option value="August">August</option>
+				<option value="September">September</option>
+				<option value="October">October</option>
+				<option value="November">November</option>
+				<option value="December">December</option>
+			</select> <br>
+			<input type="text" name="days"> <br>
+			<input type="text" name="years"> <br>
+			<input type="text" name="hours" value="24"> <br>
+			<input type="text" name="minutes"> <br>
+			<input type="text" name="seconds"> <br>
+			<button onclick="collectData();toggleDisplay();" id="clockButton">Show clock</button> <br>
+		</form>
+
+		<p id="deathClock"></p>
+
+		<script>
+			//initialize a variable to collect their death date
+			var deathDate = new Date();
+			//get the form and clock for toggleDisplay()
+			var myForm = document.getElementById(deathForm);
+			var myClock = document.getElementById(deathClock);
+
+			//set the death date to what the user supplied us
+			function collectData(){
+				deathDate.setFullYear(document.getElementById("months").value, 
+					document.getElementById("days").value, document.getElementById("years").value);
+				deathDate.setHours(document.getElementById("hours").value, 
+					document.getElementById("minutes").value, document.getElementById("seconds").value);
+			}
+
+			// Update the count down every 1 second
+			var x = setInterval(function() {
+
+				var now = new Date().getTime();
+
+				var timeTillDeath = deathDate - now;
+
+	  			var days = Math.floor(timeTillDeath / (1000 * 60 * 60 * 24));
+  				var hours = Math.floor((timeTillDeath % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  				var minutes = Math.floor((timeTillDeath % (1000 * 60 * 60)) / (1000 * 60));
+  				var seconds = Math.floor((timeTillDeath % (1000 * 60)) / 1000);
+
+  				if(clockDisplay == "block"){
+  					document.getElementById("deathClock").innerHTML = days + "d " + hours + "h " 
+  					+ minutes + "m " + seconds + "s ";
+  				}
+  				// If the countdown finishes
+  				if (distance < 0) {
+    				clearInterval(x);
+    				document.getElementById("deathClock").innerHTML = "Oh dear, looks like you're dead";
+  				}
+			}, 1000);
+
+			function toggleDisplay() {
+    			// get the current value of the clock's display property
+    			var clockDisplay = myClock.style.display;
+    			var formDisplay = myForm.style.display;
+
+    			// now toggle the clock and the button text, depending on current state
+    			if (clockDisplay == "none") {
+      			// clock is visible. hide it
+      			myClock.style.display = "block";
+      			myForm.style.display = "none";
+      			}
+  			}
+		</script>
+	</body>
+</html>
