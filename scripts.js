@@ -1,8 +1,8 @@
 //initialize a variable to collect their death date
 var deathDate = new Date();
 //get the form and clock for toggleDisplay()
-var myForm = document.getElementById(deathForm);
-var myClock = document.getElementById(deathClock);
+var myForm = document.getElementById("deathForm");
+var myClock = document.getElementById("deathClock");
 
 //set the death date to what the user supplied us
 function collectData(){
