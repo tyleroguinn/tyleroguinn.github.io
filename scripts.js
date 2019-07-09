@@ -16,6 +16,8 @@ function collectData(){
 var x = setInterval(function() {
 
     var now = new Date().getTime();
+    
+    var clockDisplay = myClock.style.display;
 
     var timeTillDeath = deathDate - now;
 
@@ -29,7 +31,7 @@ var x = setInterval(function() {
       + minutes + "m " + seconds + "s ";
     }
     // If the countdown finishes
-    if (distance < 0) {
+    if (timeTillDeath < 0) {
       clearInterval(x);
       document.getElementById("deathClock").innerHTML = "Oh dear, looks like you're dead";
     }
@@ -38,7 +40,6 @@ var x = setInterval(function() {
 function toggleDisplay() {
     // get the current value of the clock's display property
     var clockDisplay = myClock.style.display;
-    var formDisplay = myForm.style.display;
 
     // now toggle the clock and the button text, depending on current state
     if (clockDisplay == "none") {
