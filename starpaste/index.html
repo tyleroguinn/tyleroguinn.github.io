@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Starpaste</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Tap any astrology symbol to copy it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&family=Noto+Sans+Symbols:wght@400;500&family=Noto+Sans+Symbols+2&display=swap">
+<style>
+/* Layout: night-sky page, centered column, sticky jump bar of pastel chips, wrapping grid of rounded copy tiles per category */
+:root {
+  color-scheme: dark;
+  --sky-top: #1d1747;
+  --sky-bottom: #2b1f5c;
+  --ink: #f6f1ff;
+  --ink-soft: #c9bdf0;
+  --tile: rgba(255, 255, 255, 0.07);
+  --tile-hover: rgba(255, 255, 255, 0.14);
+  --tile-line: rgba(220, 205, 255, 0.18);
+  --lilac: #cdb6ff;
+  --peach: #ffc7a8;
+  --mint: #a8f0d4;
+  --pink: #ffb3d9;
+  --butter: #fff0a3;
+  --sky: #a9d8ff;
+  --toast: #fff6fb;
+  --toast-ink: #3a2470;
+  --font-display: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-body: "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-glyph: "Noto Sans Symbols", "Noto Sans Symbols 2", "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: var(--sky-top); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%) fixed, var(--sky-top);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--sky-top);
+}
+#stars { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding-block: 40px 64px; }
+
+header { text-align: center; display: grid; gap: 10px; justify-items: center; }
+.moon-row { font-size: 22px; letter-spacing: 6px; color: var(--butter); font-family: var(--font-glyph); }
+h1 {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(44px, 10vw, 76px); line-height: 1; letter-spacing: -0.01em;
+  background: linear-gradient(90deg, var(--pink), var(--lilac) 45%, var(--sky));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-wrap: balance;
+}
+.tagline { margin: 0; color: var(--ink-soft); font-size: 17px; font-weight: 700; }
+
+nav { margin: 28px 0 8px; padding: 10px 0; }
+.wrap { transition: padding-right .25s ease; }
+body.railed .wrap { padding-right: 60px; }
+#rail {
+  position: fixed; z-index: 6; top: 50%;
+  right: max(8px, calc(env(safe-area-inset-right, 0px) + 6px));
+  transform: translate(70px, -50%); opacity: 0; pointer-events: none;
+  display: flex; flex-direction: column; gap: 6px; padding: 8px 6px;
+  border-radius: 999px; border: 1px solid var(--tile-line);
+  background: color-mix(in srgb, var(--sky-top) 92%, transparent);
+  box-shadow: 0 8px 28px rgba(10, 5, 40, .5);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: transform .3s ease, opacity .3s ease;
+}
+body.railed #rail { transform: translate(0, -50%); opacity: 1; pointer-events: auto; }
+.dotlink {
+  position: relative; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  text-decoration: none; font-family: var(--font-glyph); font-size: 19px;
+  color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent);
+  border: 1.5px solid transparent; transition: background .15s ease, color .15s ease, transform .1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dotlink:hover { border-color: var(--c); }
+.dotlink:active { transform: scale(.9); }
+.dotlink.on { background: var(--c); color: #2a1d55; }
+.dotlink .lbl {
+  position: absolute; right: calc(100% + 12px); top: 50%; transform: translate(6px, -50%);
+  padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+  font-family: var(--font-body); font-size: 13px; font-weight: 800;
+  background: var(--c); color: #2a1d55; box-shadow: 0 6px 18px rgba(10, 5, 40, .45);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+}
+.dotlink.flash .lbl, .dotlink:hover .lbl, .dotlink:focus-visible .lbl { opacity: 1; transform: translate(0, -50%); }
+#rail.touching .dotlink:not(.flash) .lbl { opacity: 0; }
+.dotlink.top { color: var(--ink); background: rgba(255,255,255,.1); font-family: var(--font-body); font-weight: 800; }
+.dotlink:focus-visible { outline: 3px solid var(--butter); outline-offset: 2px; }
+@media (max-height: 640px) { .dotlink { width: 34px; height: 34px; font-size: 16px; } #rail { gap: 4px; } }
+@media (max-height: 520px) { .dotlink { width: 28px; height: 28px; font-size: 14px; } #rail { gap: 2px; padding: 6px 4px; } }
+.chips {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  max-width: 960px; margin: 0 auto; padding: 2px;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 999px; text-decoration: none;
+  font-weight: 800; font-size: 14px; white-space: nowrap;
+  color: #2a1d55; background: var(--c);
+  transition: transform .15s ease;
+}
+.chip:hover { transform: translateY(-2px); }
+.chip:focus-visible, .tile:focus-visible { outline: 3px solid var(--butter); outline-offset: 2px; }
+.chip span { font-family: var(--font-glyph); font-size: 15px; }
+
+section { scroll-margin-top: 16px; padding-top: 28px; }
+h2 {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 14px; font-family: var(--font-display); font-weight: 600; font-size: 24px;
+  color: var(--c);
+}
+h2 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 12px var(--c); }
+h2 small { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.tile {
+  appearance: none; border: 1px solid var(--tile-line); background: var(--tile);
+  color: var(--ink); border-radius: 22px; padding: 16px 8px 12px; cursor: pointer;
+  display: grid; justify-items: center; gap: 6px; font: inherit; min-width: 0;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.tile:hover { background: var(--tile-hover); border-color: var(--c); transform: translateY(-3px); }
+.tile:active { transform: scale(.95); }
+.tile .g { font-family: var(--font-glyph); font-size: 40px; line-height: 1.1; color: var(--c); }
+.tile .n { font-size: 13px; font-weight: 800; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.tile .d { font-size: 11px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.tile.copied { border-color: var(--butter); background: var(--tile-hover); }
+.tile.copied .g { animation: pop .4s ease; }
+@keyframes pop { 40% { transform: scale(1.25) rotate(-6deg); } }
+
+
+#toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+  background: var(--toast); color: var(--toast-ink); border-radius: 999px;
+  padding: 10px 18px; font-weight: 800; font-size: 15px; white-space: nowrap;
+  box-shadow: 0 10px 30px rgba(10, 5, 40, .45);
+  transition: opacity .2s ease, transform .2s ease;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast b { font-family: var(--font-glyph); font-size: 18px; margin-right: 4px; }
+
+@media (max-width: 420px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tile .g { font-size: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header>
+    <div class="moon-row" aria-hidden="true">☽ ✦ ☉ ✦ ☾</div>
+    <h1>Starpaste</h1>
+    <p class="tagline">Tap any symbol to copy it ✨</p>
+  </header>
+  <nav aria-label="Jump to a category"><div class="chips" id="chips"></div></nav>
+  <main id="main"></main>
+</div>
+<nav id="rail" aria-label="Jump to a category"></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DATA = [{"id": "planets", "name": "Planets & Luminaries", "s": [["☉", "Sun"], ["☽", "Moon"], ["☿", "Mercury"], ["♀", "Venus"], ["♁", "Earth"], ["♂", "Mars"], ["♃", "Jupiter"], ["♄", "Saturn"], ["♅", "Uranus"], ["♆", "Neptune"], ["♇", "Pluto"]]}, {"id": "zodiac", "name": "Zodiac Signs", "s": [["♈", "Aries"], ["♉", "Taurus"], ["♊", "Gemini"], ["♋", "Cancer"], ["♌", "Leo"], ["♍", "Virgo"], ["♎", "Libra"], ["♏", "Scorpio"], ["♐", "Sagittarius"], ["♑", "Capricorn"], ["♒", "Aquarius"], ["♓", "Pisces"], ["⛎", "Ophiuchus"]]}, {"id": "major-aspects", "name": "Major Aspects", "s": [["☌", "Conjunction 0°"], ["⚹", "Sextile 60°"], ["□", "Square 90°"], ["△", "Trine 120°"], ["☍", "Opposition 180°"]]}, {"id": "minor-aspects", "name": "Minor Aspects", "s": [["⚺", "Semi-sextile 30°"], ["⚻", "Quincunx 150°"]]}, {"id": "points", "name": "Points & Moons", "s": [["☊", "North Node"], ["☋", "South Node"], ["⚸", "Black Moon Lilith"], ["⊗", "Part of Fortune"]]}, {"id": "asteroids", "name": "Asteroids & Centaurs", "s": [["⚳", "Ceres"], ["⚴", "Pallas"], ["⚵", "Juno"], ["⚶", "Vesta"], ["⚷", "Chiron"]]}, {"id": "elements", "name": "Elements", "s": [["🜂", "Fire"], ["🜃", "Earth"], ["🜁", "Air"], ["🜄", "Water"]]}, {"id": "moon-phases", "name": "Moon Phases", "s": [["🌑", "New Moon"], ["🌒", "Waxing Crescent"], ["🌓", "First Quarter"], ["🌔", "Waxing Gibbous"], ["🌕", "Full Moon"], ["🌖", "Waning Gibbous"], ["🌗", "Last Quarter"], ["🌘", "Waning Crescent"]]}, {"id": "extras", "name": "Chart Extras", "s": [["℞", "Retrograde"], ["☄", "Comet"], ["☀", "Sun (rays)"]]}, {"id": "sparkles", "name": "Stars & Sparkles", "s": [["★", "Star"], ["☆", "Star (outline)"], ["✦", "Sparkle"], ["✧", "Sparkle (outline)"], ["⋆", "Tiny Star"], ["✩", "Outlined Star"], ["✨", "Sparkles"], ["🌙", "Crescent Moon"], ["🪐", "Ringed Planet"], ["🌟", "Glowing Star"], ["💫", "Dizzy Star"]]}, {"id": "alt-forms", "name": "Alternate Glyphs", "s": [["☾", "Moon (waning)"], ["⛢", "Uranus (astronomical)"]]}];
+const COLORS = ["--lilac","--pink","--peach","--mint","--sky","--butter"];
+const ZODIAC_DATES = {
+  Aries:"Mar 21–Apr 19", Taurus:"Apr 20–May 20", Gemini:"May 21–Jun 20", Cancer:"Jun 21–Jul 22",
+  Leo:"Jul 23–Aug 22", Virgo:"Aug 23–Sep 22", Libra:"Sep 23–Oct 22", Scorpio:"Oct 23–Nov 21",
+  Sagittarius:"Nov 22–Dec 21", Capricorn:"Dec 22–Jan 19", Aquarius:"Jan 20–Feb 18", Pisces:"Feb 19–Mar 20",
+  Ophiuchus:"Nov 29–Dec 17"
+};
+const chips = document.getElementById("chips");
+const main = document.getElementById("main");
+
+DATA.forEach((cat, i) => {
+  const c = `var(${COLORS[i % COLORS.length]})`;
+  const a = document.createElement("a");
+  a.className = "chip"; a.href = "#" + cat.id; a.style.setProperty("--c", c);
+  a.innerHTML = `<span aria-hidden="true">${cat.s[0][0]}</span>${cat.name}`;
+  chips.append(a);
+
+  const sec = document.createElement("section");
+  sec.id = cat.id; sec.style.setProperty("--c", c);
+  sec.innerHTML = `<h2><span class="dot"></span>${cat.name}<small>${cat.s.length}</small></h2><div class="grid"></div>`;
+  const grid = sec.querySelector(".grid");
+  cat.s.forEach(([ch, name]) => {
+    const m = name.match(/^(.*?)\s(\d+°)$/);
+    const label = m ? m[1] : name;
+    const detail = m ? m[2] : ZODIAC_DATES[name] || "";
+    const b = document.createElement("button");
+    b.className = "tile"; b.type = "button";
+    b.setAttribute("aria-label", `Copy ${name} symbol`);
+    b.innerHTML = `<span class="g">${ch}</span><span class="n">${label}</span>` + (detail ? `<span class="d">${detail}</span>` : "");
+    b.addEventListener("click", () => copy(ch, label, b));
+    grid.append(b);
+  });
+  main.append(sec);
+});
+
+const rail = document.getElementById("rail");
+DATA.forEach((cat, i) => {
+  const a = document.createElement("a");
+  a.className = "dotlink"; a.href = "#" + cat.id; a.title = cat.name;
+  a.setAttribute("aria-label", cat.name);
+  a.style.setProperty("--c", `var(${COLORS[i % COLORS.length]})`);
+  a.innerHTML = `<span aria-hidden="true">${cat.s[0][0]}</span><span class="lbl">${cat.name}</span>`;
+  rail.append(a);
+});
+const topBtn = document.createElement("a");
+topBtn.className = "dotlink top"; topBtn.href = "#top"; topBtn.setAttribute("aria-label", "Back to top");
+topBtn.innerHTML = `<span aria-hidden="true">↑</span><span class="lbl">Back to top</span>`;
+rail.append(topBtn);
+rail.addEventListener("touchstart", () => rail.classList.add("touching"), { passive: true });
+new IntersectionObserver(([e]) => {
+  document.body.classList.toggle("railed", !e.isIntersecting && e.boundingClientRect.top < 0);
+}).observe(chips);
+const links = [...rail.querySelectorAll('.dotlink:not(.top)')];
+const spy = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    links.forEach(l => {
+      const on = l.hash === "#" + e.target.id;
+      if (on && !l.classList.contains("on")) {
+        l.classList.add("flash"); clearTimeout(l._t); l._t = setTimeout(() => l.classList.remove("flash"), 1600);
+      }
+      if (!on) l.classList.remove("flash");
+      l.classList.toggle("on", on);
+    });
+  });
+}, { rootMargin: "-35% 0px -60% 0px" });
+document.querySelectorAll("section").forEach(s => spy.observe(s));
+[chips, rail].forEach(el => el.addEventListener("click", e => {
+  const a = e.target.closest("a"); if (!a) return;
+  e.preventDefault();
+  (a.hash === "#top" ? document.body : document.querySelector(a.getAttribute("href"))).scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}));
+
+const toast = document.getElementById("toast");
+let toastTimer;
+function showToast(html) {
+  toast.innerHTML = html; toast.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("show"), 1400);
+}
+function fallbackCopy(text) {
+  const t = document.createElement("textarea");
+  t.value = text; t.setAttribute("readonly", ""); t.style.position = "fixed"; t.style.opacity = "0";
+  document.body.append(t); t.select();
+  let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+  t.remove(); return ok;
+}
+function copy(ch, label, el) {
+  const done = ok => {
+    el.classList.remove("copied"); void el.offsetWidth; el.classList.add("copied");
+    setTimeout(() => el.classList.remove("copied"), 900);
+    showToast(ok ? `<b>${ch}</b> ${label} copied!` : `Press and hold to copy <b>${ch}</b>`);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ch).then(() => done(true), () => done(fallbackCopy(ch)));
+  } else done(fallbackCopy(ch));
+}
+
+/* twinkling starfield */
+(() => {
+  const cv = document.getElementById("stars"), cx = cv.getContext("2d");
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let stars = [], w, h, dpr;
+  function size() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    w = cv.clientWidth; h = cv.clientHeight;
+    cv.width = w * dpr; cv.height = h * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(w * h / 5000);
+    const tints = ["255,255,255","255,214,240","214,200,255","255,240,190"];
+    stars = Array.from({ length: n }, () => ({
+      x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.3 + 0.3,
+      p: Math.random() * 6.28, s: Math.random() * 0.002 + 0.0006, t: tints[Math.random() * 4 | 0]
+    }));
+  }
+  function draw(time) {
+    cx.clearRect(0, 0, w, h);
+    for (const s of stars) {
+      const a = still ? 0.7 : 0.35 + 0.65 * Math.abs(Math.sin(s.p + time * s.s));
+      cx.fillStyle = `rgba(${s.t},${a})`;
+      cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.28); cx.fill();
+    }
+    if (!still) requestAnimationFrame(draw);
+  }
+  size(); addEventListener("resize", () => { size(); if (still) draw(0); });
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
